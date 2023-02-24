@@ -1,6 +1,7 @@
 package br.com.treinaweb.ediaristas.api.handlers;
 
 import br.com.treinaweb.ediaristas.api.dto.responses.ErrorResponse;
+import br.com.treinaweb.ediaristas.core.exceptions.ValidacaoException;
 import br.com.treinaweb.ediaristas.core.services.consultaCep.exceptions.EnderecoServiceException;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import org.springframework.http.HttpHeaders;
@@ -34,6 +35,22 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 			.build();
 
 		return ResponseEntity.badRequest().body(errorResponse);
+	}
+
+	@ExceptionHandler(ValidacaoException.class)
+	public ResponseEntity<Object> handleValidacaoException(
+		ValidacaoException ex
+	) {
+		var body = new HashMap<String, List<String>>();
+
+		var fieldError = ex.getFieldError();
+		var fieldErrors = new ArrayList<String>();
+
+		fieldErrors.add(fieldError.getDefaultMessage());
+		var field = camelCaseToSnakeCase.translate(fieldError.getField());
+		body.put(field, fieldErrors);
+
+		return ResponseEntity.badRequest().body(body);
 	}
 
 	@Override
