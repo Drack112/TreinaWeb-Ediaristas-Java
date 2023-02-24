@@ -19,8 +19,8 @@ public class UsuarioValidator {
 
 	private void validarEmail(Usuario usuario) {
 		if (repository.isEmailJaCadastrado(usuario)) {
-			var mensagem = "Ja existe um usuario cadastrado com esse e-mail";
-			var fieldError = new FieldError(usuario.getClass().getName(), "email", usuario.getEmail());
+			var mensagem = "Já existe um usuário cadastrado com esse e-mail";
+			var fieldError = new FieldError(usuario.getClass().getName(), "email", usuario.getEmail(), false, null, null, mensagem);
 
 			throw new UsuarioJaCadastradoException(mensagem, fieldError);
 		}
@@ -30,8 +30,8 @@ public class UsuarioValidator {
 
 	private void validarCpf(Usuario usuario) {
 		if (repository.isCpfJaCadastrado(usuario)) {
-			var mensagem = "Ja existe um usuario cadastrado com esse cpf";
-			var fieldError = new FieldError(usuario.getClass().getName(), "cpf", usuario.getCpf());
+			var mensagem = "Já existe um usuário cadastrado com esse cpf";
+			var fieldError = new FieldError(usuario.getClass().getName(), "cpf", usuario.getCpf(), false, null, null, mensagem);
 
 			throw new UsuarioJaCadastradoException(mensagem, fieldError);
 		}
@@ -39,13 +39,20 @@ public class UsuarioValidator {
 		validarChavePix(usuario);
 	}
 
-
 	private void validarChavePix(Usuario usuario) {
 		if (repository.isChavePixJaCadastrada(usuario)) {
-			var mensagem = "Ja existe um usuario cadastrado com essa chave pix";
-			var fieldError = new FieldError(usuario.getClass().getName(), "chavePix", usuario.getChavePix());
+			var mensagem = "Já existe um usuário cadastrado com essa chave pix";
+			var fieldError = new FieldError(usuario.getClass().getName(), "chavePix", usuario.getChavePix(), false, null, null, mensagem);
+
+			throw new UsuarioJaCadastradoException(mensagem, fieldError);
+		}
+
+		if (usuario.isDiarista() && usuario.getChavePix() == null) {
+			var mensagem = "Usuário do tipo DIARISTA precisa ter a chave pix";
+			var fieldError = new FieldError(usuario.getClass().getName(), "chavePix", usuario.getChavePix(), false, null, null, mensagem);
 
 			throw new UsuarioJaCadastradoException(mensagem, fieldError);
 		}
 	}
+
 }

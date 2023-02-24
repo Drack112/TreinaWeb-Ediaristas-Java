@@ -1,11 +1,7 @@
 package br.com.treinaweb.ediaristas.core.models;
 
 import br.com.treinaweb.ediaristas.core.enums.TipoUsuario;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -19,24 +15,24 @@ import java.util.List;
 @ToString(onlyExplicitlyIncluded = true)
 public class Usuario {
 
-    @EqualsAndHashCode.Include
-    @ToString.Include
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@EqualsAndHashCode.Include
+	@ToString.Include
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(name = "nome_completo", nullable = false)
-    private String nomeCompleto;
+	@Column(name = "nome_completo", nullable = false)
+	private String nomeCompleto;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+	@Column(nullable = false, unique = true)
+	private String email;
 
-    @Column(nullable = false)
-    private String senha;
+	@Column(nullable = false)
+	private String senha;
 
-    @Column(name = "tipo_usuario", length = 8, nullable = false)
-    @Enumerated(EnumType.STRING)
-    private TipoUsuario tipoUsuario;
+	@Column(name = "tipo_usuario", length = 8, nullable = false)
+	@Enumerated(EnumType.STRING)
+	private TipoUsuario tipoUsuario;
 
 	@Column(nullable = true, length = 11, unique = true)
 	private String cpf;
@@ -68,5 +64,13 @@ public class Usuario {
 		inverseJoinColumns = @JoinColumn(name = "cidade_atendida_id")
 	)
 	private List<CidadeAtendida> cidadesAtendidas;
+
+	public Boolean isDiarista() {
+		return tipoUsuario.equals(TipoUsuario.DIARISTA);
+	}
+
+	public Boolean isCliente() {
+		return tipoUsuario.equals(TipoUsuario.CLIENTE);
+	}
 
 }
