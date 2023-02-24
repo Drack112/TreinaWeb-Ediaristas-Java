@@ -59,6 +59,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			.key(rememberMeKey);
 
 		http.cors();
+		http.csrf().ignoringAntMatchers("/api/**");
 	}
 
 	@Override
