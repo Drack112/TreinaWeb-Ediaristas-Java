@@ -1,6 +1,7 @@
 package br.com.treinaweb.ediaristas.api.services;
 
 import br.com.treinaweb.ediaristas.api.dto.responses.DiaristaLocalidadesPagedResponse;
+import br.com.treinaweb.ediaristas.api.dto.responses.DisponibilidadeResponse;
 import br.com.treinaweb.ediaristas.api.mappers.ApiDiaristaMapper;
 import br.com.treinaweb.ediaristas.core.repositories.UsuarioRepository;
 import br.com.treinaweb.ediaristas.core.services.consultaCep.adapters.EnderecoService;
@@ -21,7 +22,7 @@ public class ApiDiaristaService {
 	private EnderecoService enderecoService;
 
 	public DiaristaLocalidadesPagedResponse buscarDiaristasPorCep(String cep) {
-		var codigoIbge = enderecoService.buscarEnderecoPorCep(cep).getIbge();
+		var codigoIbge = buscarCodigoIbgePorCep(cep);
 
 		var sort = Sort.by(Sort.Direction.DESC, "reputacao");
 		var pageable = PageRequest.of(0, 6, sort);
@@ -33,5 +34,17 @@ public class ApiDiaristaService {
 			.toList();
 
 		return new DiaristaLocalidadesPagedResponse(diaristas, 6, resultado.getTotalElements());
+	}
+
+	public DisponibilidadeResponse verificarDisponibilidadePorCep(String cep) {
+		var codigoIbge = buscarCodigoIbgePorCep(cep);
+
+		var disponibilidade = repository.existsByCidadesAtendidasCodigoIbge(codigoIbge);
+
+		return new DisponibilidadeResponse(disponibilidade);
+	}
+
+	private String buscarCodigoIbgePorCep(String cep) {
+		return enderecoService.buscarEnderecoPorCep(cep).getIbge();
 	}
 }
