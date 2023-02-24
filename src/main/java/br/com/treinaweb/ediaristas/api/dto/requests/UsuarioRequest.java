@@ -1,5 +1,6 @@
 package br.com.treinaweb.ediaristas.api.dto.requests;
 
+import br.com.treinaweb.ediaristas.core.validators.Idade;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -44,6 +45,7 @@ public class UsuarioRequest {
 
 	@NotNull
 	@Past
+	@Idade(min = 10, max = 100)
 	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 	private LocalDate nascimento;
 
