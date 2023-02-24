@@ -14,7 +14,6 @@ public class IdadeValidator implements ConstraintValidator<Idade, LocalDate> {
 	public void initialize(Idade constraintAnnotation) {
 		min = constraintAnnotation.min();
 		max = constraintAnnotation.max();
-
 		validarParametros();
 	}
 
@@ -29,18 +28,16 @@ public class IdadeValidator implements ConstraintValidator<Idade, LocalDate> {
 		return idade >= min && idade <= max;
 	}
 
-	public void validarParametros() {
+	private void validarParametros() {
 		if (min < 0) {
-			throw new IllegalArgumentException("O parametro min nao pode ser negativo");
+			throw new IllegalArgumentException("O parâmetro min não pode ser negativo");
 		}
-
 		if (max < 0) {
-			throw new IllegalArgumentException("O parametro max nao pode ser negativo");
+			throw new IllegalArgumentException("O parâmetro max não pode ser negativo");
 		}
-
 		if (max < min) {
-			throw new IllegalArgumentException("O parametro max nao pode ser menor que o min");
+			throw new IllegalArgumentException("O pârametro max não pode ser menor que o parâmetro min");
 		}
-
 	}
+
 }

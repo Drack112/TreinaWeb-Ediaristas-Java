@@ -9,11 +9,11 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = IdadeValidator.class)
 public @interface Idade {
 
-	String message() default "Deve ter entre {min} e {max} anos";
+	String message() default "deve ter entre {min} e {max} anos";
 
 	Class<?>[] groups() default {};
 
-	Class<? extends Payload>[] payloads() default {};
+	Class<? extends Payload>[] payload() default {};
 
 	int min() default 0;
 
@@ -23,6 +23,9 @@ public @interface Idade {
 	@Retention(RetentionPolicy.RUNTIME)
 	@Documented
 	@interface List {
+
 		Idade[] value();
+
 	}
+
 }
