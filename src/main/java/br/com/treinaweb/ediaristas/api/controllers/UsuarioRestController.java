@@ -19,7 +19,7 @@ public class UsuarioRestController {
 	@PostMapping
 	@ResponseStatus(code = HttpStatus.CREATED)
 	public UsuarioResponse cadastrar(
-		@RequestBody @Valid UsuarioRequest request
+		@ModelAttribute @Valid UsuarioRequest request
 	) {
 		return service.cadastrar(request);
 	}

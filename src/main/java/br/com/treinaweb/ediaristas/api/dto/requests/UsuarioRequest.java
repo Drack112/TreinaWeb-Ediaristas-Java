@@ -1,13 +1,12 @@
 package br.com.treinaweb.ediaristas.api.dto.requests;
 
 import br.com.treinaweb.ediaristas.core.validators.Idade;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.br.CPF;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
@@ -15,7 +14,6 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UsuarioRequest {
 
 	@NotNull
@@ -55,4 +53,28 @@ public class UsuarioRequest {
 
 	@Size(min = 11, max = 255)
 	private String chavePix;
+
+	@NotNull
+	private MultipartFile fotoDocumento;
+
+	public void setNome_completo(String nomeCompleto) {
+		setNomeCompleto(nomeCompleto);
+	}
+
+	public void setPassword_confirmation(String passwordConfirmation) {
+		setPasswordConfirmation(passwordConfirmation);
+	}
+
+	public void setTipo_Usuario(Integer tipoUsuario) {
+		setTipoUsuario(tipoUsuario);
+	}
+
+	public void setChave_Pix(String chavePix) {
+		setChavePix(chavePix);
+	}
+
+	public void setFoto_documento(MultipartFile fotoDocumento) {
+		setFotoDocumento(fotoDocumento);
+	}
+
 }

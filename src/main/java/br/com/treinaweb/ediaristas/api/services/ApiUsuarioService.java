@@ -5,6 +5,7 @@ import br.com.treinaweb.ediaristas.api.dto.responses.UsuarioResponse;
 import br.com.treinaweb.ediaristas.api.mappers.ApiUsuarioMapper;
 import br.com.treinaweb.ediaristas.core.exceptions.SenhasNaoConferemException;
 import br.com.treinaweb.ediaristas.core.repositories.UsuarioRepository;
+import br.com.treinaweb.ediaristas.core.services.storage.adapters.StorageService;
 import br.com.treinaweb.ediaristas.core.validators.UsuarioValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +27,9 @@ public class ApiUsuarioService {
 	@Autowired
 	private UsuarioValidator validator;
 
+	@Autowired
+	private StorageService storageService;
+
 	public UsuarioResponse cadastrar(UsuarioRequest request) {
 
 		validarConfirmacaoSenha(request);
@@ -36,6 +40,9 @@ public class ApiUsuarioService {
 
 		var senhaEncrypted = passwordEncoder.encode(usuarioParaCadastrar.getSenha());
 		usuarioParaCadastrar.setSenha(senhaEncrypted);
+
+		var fotoDocumento = storageService.salvar(request.getFotoDocumento());
+		usuarioParaCadastrar.setFotoDocumento(fotoDocumento);
 
 		var usuarioCadastrado = repository.save(usuarioParaCadastrar);
 
