@@ -52,7 +52,6 @@ public class LocalStorageProvider implements StorageService {
 
 	private String gerarNovoFilename(String filenameOriginal) {
 		var ext = filenameOriginal.split("\\.")[1];
-		var filename = UUID.randomUUID().toString() + "." + ext;
-		return filename;
+		return UUID.randomUUID().toString() + "." + ext;
 	}
 }
