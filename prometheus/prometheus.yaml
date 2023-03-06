@@ -1,15 +1,18 @@
 global:
   scrape_interval: 15s
   scrape_timeout: 15s
+  evaluation_interval: 1m
 
   external_labels:
     monitor: "dev-monitor"
 
 scrape_configs:
   - job_name: 'Spring Boot Application input'
+    honor_timestamps: true
     scheme: http
+    metrics_path: /actuator/prometheus
     static_configs:
-      - targets: [ 'app:8000', 'load-balancer:8080' ]
+      - targets: [ 'app:8000' ]
         labels:
           application: 'My Spring Boot Application'
     basic_auth:
