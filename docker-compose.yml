@@ -1,48 +1,149 @@
-version: '3'
+version: '3.7'
+
+networks:
+  traefik:
+    external: true
 
 services:
+
+  app:
+    container_name: e-diaristas-spring
+    build:
+      context: .
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.ediaristas.loadbalancer.server.port=8000
+      - traefik.http.routers.ediaristas.rule=Host(`ediaristas.localhost`) && PathPrefix(`/`)
+      - traefik.http.routers.ediaristas.entrypoints=web
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        delay: 10s
+        order: start-first
+        parallelism: 1
+      rollback_config:
+        parallelism: 0
+        order: stop-first
+    logging:
+      driver: json-file
+      options:
+        'max-size': '10m'
+        'max-file': '5'
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - prometheus
+      - grafana
+      - load-balancer
+    networks:
+      - traefik
+
   db:
     image: mysql:5.7
     container_name: mysql-ediaristas
+    command: mysqld --general-log=1 --general-log-file=/var/log/mysql/general-log.log
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        delay: 10s
+        order: start-first
+        parallelism: 1
+      rollback_config:
+        parallelism: 0
+        order: stop-first
+    logging:
+      driver: json-file
+      options:
+        'max-size': '10m'
+        'max-file': '5'
     env_file:
       - .env
     ports:
       - "3306:3306"
     volumes:
       - .docker/dbdata:/var/lib/mysql
+    networks:
+      - traefik
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: php-my-admin-ediarista
-    links:
-      - db
-    environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-      PMA_ARBITRARY: 1
-    restart: always
-    ports:
-      - 8081:80
 
   prometheus:
     image: prom/prometheus:v2.38.0
-    network_mode: host
-    container_name: prometheus-container
+    container_name: prometheus-container-ediaristas
     volumes:
       - ./prometheus/:/etc/prometheus/
     command:
       - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`) && PathPrefix(`/`)"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      - "traefik.http.routers.prometheus.entrypoints=web"
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+        parallelism: 1
+      resources:
+        reservations:
+          memory: 100M
+        limits:
+          memory: 300M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 10
     ports:
       - "9090:9090"
-    restart: always
+    networks:
+      - traefik
 
   grafana:
     image: grafana/grafana-oss:9.1.4
     user: "$UID:$GID"
-    network_mode: host
-    container_name: grafana-container
-    depends_on:
-      - prometheus
+    container_name: grafana-container-ediaristas
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana.service=grafana"
+      - "traefik.http.routers.grafana.entrypoints=web"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+        parallelism: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 10
+      resources:
+        reservations:
+          memory: 100M
+        limits:
+          memory: 400M
+    logging: &logging_config
+      driver: ${LOGGING_DRIVER}
+      options:
+        "max-size": "10m"
+        "max-file": "5"
     ports:
       - "3000:3000"
     volumes:
@@ -50,3 +151,59 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_SERVER_DOMAIN=localhost
+    networks:
+      - traefik
+
+
+  load-balancer:
+    image: 'traefik:v2.3'
+    container_name: traefik-diaristas
+    command:
+      - "--entryPoints.web.address=:80"
+      - "--providers.docker"
+      - "--providers.docker.exposedByDefault=false"
+      - '--providers.docker.defaultRule=Host("localhost")'
+      - "--accessLog"
+      - "--api=true"
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+      - "--metrics.prometheus=true"
+    ports:
+      - "80:80"  # load balancer port
+      - "8080:8080"  # management UI
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      # Dashboard
+      - traefik.http.routers.traefik.rule=Host(`localhost`)
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)
+      - traefik.http.routers.http-catchall.entrypoints=web
+      # Metrics
+      - traefik.http.routers.prometheus.rule=PathPrefix(`/metrics`)
+      - traefik.http.routers.prometheus.service=prometheus@internal
+      - traefik.http.routers.prometheus.entrypoints=metrics
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        delay: 10s
+        order: start-first
+        parallelism: 1
+      rollback_config:
+        parallelism: 0
+        order: stop-first
+    logging:
+      driver: json-file
+      options:
+        'max-size': '10m'
+        'max-file': '5'
+    networks:
+      - traefik
