@@ -3,9 +3,6 @@ global:
   scrape_timeout: 15s
   evaluation_interval: 1m
 
-  external_labels:
-    monitor: "dev-monitor"
-
 scrape_configs:
   - job_name: 'Spring Boot Application input'
     honor_timestamps: true
