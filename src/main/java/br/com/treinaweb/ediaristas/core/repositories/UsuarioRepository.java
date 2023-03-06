@@ -4,6 +4,7 @@ import br.com.treinaweb.ediaristas.core.models.Usuario;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
@@ -18,6 +19,18 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 	Page<Usuario> findByCidadesAtendidasCodigoIbge(String codigoIbge, Pageable pageable);
 
 	Boolean existsByCidadesAtendidasCodigoIbge(String codigoIbge);
+
+	@Query(
+		"""
+		SELECT
+			AVG(u.reputacao)
+		FROM
+			Usuario u
+		WHERE
+			u.tipoUsuario = br.com.treinaweb.ediaristas.core.enums.TipoUsuario.DIARISTA
+		"""
+	)
+	Double getReputacaoDiarista();
 
 	default Boolean isEmailJaCadastrado(Usuario usuario) {
 		if (usuario.getEmail() == null) {
