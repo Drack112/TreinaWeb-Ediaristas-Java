@@ -37,6 +37,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - mail
       - prometheus
       - grafana
       - load-balancer
@@ -74,6 +75,14 @@ services:
     networks:
       - traefik
 
+  mail:
+    image: mailhog/mailhog
+    container_name: ediaristas-email-server
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - traefik
 
   prometheus:
     image: prom/prometheus:v2.38.0
