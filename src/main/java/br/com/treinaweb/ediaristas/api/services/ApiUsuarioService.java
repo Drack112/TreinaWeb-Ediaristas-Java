@@ -5,12 +5,16 @@ import br.com.treinaweb.ediaristas.api.dto.responses.UsuarioResponse;
 import br.com.treinaweb.ediaristas.api.mappers.ApiUsuarioMapper;
 import br.com.treinaweb.ediaristas.core.exceptions.SenhasNaoConferemException;
 import br.com.treinaweb.ediaristas.core.repositories.UsuarioRepository;
+import br.com.treinaweb.ediaristas.core.services.email.adapters.EmailService;
+import br.com.treinaweb.ediaristas.core.services.email.dto.EmailParams;
 import br.com.treinaweb.ediaristas.core.services.storage.adapters.StorageService;
 import br.com.treinaweb.ediaristas.core.validators.UsuarioValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.FieldError;
+
+import java.util.HashMap;
 
 @Service
 public class ApiUsuarioService {
@@ -29,6 +33,9 @@ public class ApiUsuarioService {
 
 	@Autowired
 	private StorageService storageService;
+
+	@Autowired
+	private EmailService emailService;
 
 	public UsuarioResponse cadastrar(UsuarioRequest request) {
 
@@ -51,6 +58,21 @@ public class ApiUsuarioService {
 		}
 
 		var usuarioCadastrado = repository.save(usuarioParaCadastrar);
+
+		if(usuarioCadastrado.isCliente() || usuarioCadastrado.isDiarista()){
+			var props = new HashMap<String, Object>();
+			props.put("nome", usuarioCadastrado.getNomeCompleto());
+			props.put("tipoUsuario", usuarioCadastrado.getTipoUsuario().name());
+
+			var emailParams = new EmailParams();
+
+			emailParams.setDestinatario(usuarioCadastrado.getEmail());
+			emailParams.setAssunto("Cadastro realizado com sucesso");
+			emailParams.setTemplate("emails/boas-vindas");
+			emailParams.setProps(props);
+
+			emailService.enviarEmailComTemplateHtml(emailParams);
+		}
 
 		return mapper.toResponse(usuarioCadastrado);
 	}
